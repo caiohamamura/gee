@@ -7,8 +7,6 @@ var k2_b14 = 1271.221673;
 var k1_b13 = 866.468575;
 var k1_b14 = 641.326517;
 
-ee.Number(k2_b13)/ee.Number(k1_b13).divide(image)+ee.Number(1)
-
 var aster = ee.ImageCollection('ASTER/AST_L1T_003')
   .filterDate('2016-12-01', '2016-12-30')
   .filterBounds(geometry)
@@ -30,10 +28,19 @@ var checkhour = function(image) {
   return image.set('hour', image.date().get('hour'));
 };
 
+var calculateTemperatureBrightness = function(image) {
+   var evi = image.expression(
+    'k2 / (log(k1/b("B13") + 1))', {
+      'k2': k2_b13,
+      'k1': k1_b13
+});
+   return evi;
+}
+
 var aster2 = aster.map(checkhour);
 aster2 = aster2.filter(ee.Filter.eq('hour', 13));
 
-Map.addLayer(aster2.mosaic().clip(geometry),
+Map.addLayer(aster2.map(calculateTemperatureBrightness).mosaic().clip(geometry),
 imageVisParam);
 
 print(aster2);
