@@ -1,0 +1,22 @@
+var geometry = ee.FeatureCollection('users/caiohamamura/piracicaba')
+
+var aster = ee.ImageCollection('ASTER/AST_L1T_003')
+  .filterDate('2018-02-01', '2018-03-08')
+  .filterBounds(geometry)
+  .select(['B10', 'B11', 'B12', 'B13', 'B14']);
+  
+
+// Create a geometry representing an export region.
+
+
+// Export the image, specifying scale and region.
+Export.image.toDrive({
+  image: aster.mosaic().clip(geometry),
+  description: 'ASTER2',
+  scale: 90,
+});
+
+Map.addLayer(aster.mosaic().clip(geometry));
+
+var date = aster.get('PRODUCTION_TIME');
+print('Timestamp: ', date);
