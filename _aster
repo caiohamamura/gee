@@ -18,5 +18,5 @@ Export.image.toDrive({
 
 Map.addLayer(aster.mosaic().clip(geometry));
 
-var date = aster.get('PRODUCTION_TIME');
+var date = ee.Date(ee.Image(aster.first()).get('PRODUCTION_TIME'));
 print('Timestamp: ', date);
