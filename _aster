@@ -16,7 +16,14 @@ Export.image.toDrive({
   scale: 90,
 });
 
-Map.addLayer(aster.mosaic().clip(geometry));
+var checkhour = function(image) {
+  return image.set('hour', image.date().get('hour'));
+}
 
-var date = ee.Date(ee.Image(aster.first()).get('PRODUCTION_TIME'));
-print('Timestamp: ', date);
+var aster2 = aster.map(checkhour);
+
+Map.addLayer(aster2.filter(ee.Filter.neq('remove', true)).mosaic().clip(geometry));
+
+var date = ee.Image(aster.first()).date();
+
+print('Timestamp: ', date.get("hour"));
