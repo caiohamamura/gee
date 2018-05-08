@@ -34,12 +34,14 @@ var calculateTemperatureBrightness = function(image) {
       'k2': k2_b13,
       'k1': k1_b13
 });
+t13.rename('T13');
    var t14 = image.expression(
     'k2 / (log(k1/b("B14") + 1))', {
       'k2': k2_b14,
       'k1': k1_b14
 });
-   return image.addBands(t13, 'T13').addBands(t14, 'T14');
+t14.rename(['T14']);
+   return image.addBands(t13).addBands(t14);
 }
 
 var aster2 = aster.map(checkhour);
