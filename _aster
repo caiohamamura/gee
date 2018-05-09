@@ -8,7 +8,7 @@ var k1_b13 = 866.468575;
 var k1_b14 = 641.326517;
 
 var aster = ee.ImageCollection('ASTER/AST_L1T_003')
-  .filterDate('2016-12-01', '2016-12-30')
+  .filterDate('2016-12-6', '2016-12-7')
   .filterBounds(geometry)
   .select(['B01', 'B02', 'B3N','B10', 'B11', 'B12', 'B13', 'B14']);
   
@@ -49,4 +49,25 @@ aster2 = aster2.filter(ee.Filter.eq('hour', 13));
 Map.addLayer(aster2.map(calculateTemperatureBrightness).mosaic().clip(geometry),
 imageVisParam);
 
-print(ee.Date(ee.Image(aster2.first()).date()));
+
+var calc_transmit = function(image) {
+  var transm13 = image.expression("1.035378-0.097514*b()").rename(["transm13"]);
+  var transm14 = image.expression("1.026468-0.135133*b()").rename(["transm14"]);
+  return image.addBands(transm13).addBands(transm14);
+}
+
+
+var vapor = ee.ImageCollection('MODIS/006/MOD08_M3')
+  .filterDate('2016-12-1', '2016-12-2')
+  .filterBounds(geometry)
+  .select(['Atmospheric_Water_Vapor_Mean_Mean']);
+ 
+var aster3 = aster2.mosaic().clip(geometry);
+var ndvi = aster3.expression("(b('B3N')-b('B02'))/(b('B3N')+b('B02'))");
+var ndvi_v = ndvi.expression('(b()-0.75)/0.65');
+var ndvi_s = ndvi.expression('(b()-0.1)/0.65');
+
+var transmittance = vapor.map(calc_transmit);
+  
+Map.addLayer(ndvi);  
+Map.addLayer(transmittance.mosaic().clip(geometry));
