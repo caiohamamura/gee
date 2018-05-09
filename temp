@@ -1,0 +1,14 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var geometry = ee.FeatureCollection("users/caiohamamura/piracicaba"),
+    imageVisParam = {"opacity":1,"bands":["B3N","B02","B01"],"min":36,"gamma":1};
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var k2_b13 = 1350.069147;
+var k2_b14 = 1271.221673;
+var k1_b13 = 866.468575;
+var k1_b14 = 641.326517;
+
+var aster = ee.ImageCollection('ASTER/AST_L1T_003')
+  .filterDate('2016-12-01', '2016-12-30')
+  .filterBounds(geometry)
+  .select(['B01', 'B02', 'B3N','B10', 'B11', 'B12', 'B13', 'B14']);
+  
