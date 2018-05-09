@@ -65,7 +65,21 @@ var vapor = ee.ImageCollection('MODIS/006/MOD08_M3')
 var aster3 = aster2.mosaic().clip(geometry);
 var ndvi = aster3.expression("(b('B3N')-b('B02'))/(b('B3N')+b('B02'))");
 var a_v = ndvi.expression('(b()-0.75)/0.65');
-var b_v = ndvi.expression('(b()-0.1)/0.65');
+var a_s = ndvi.expression('(b()-0.1)/0.65');
+var rv = a_v.expression("0.92762+0.07033*b()");
+var rs = a_s.expression("0.99782+0.08362*b()");
+var e13 = a_s.expression("b()*rs*0.967613+av*rv*0.9867", {
+  "rs": rs,
+  "rv": rv,
+  "av": a_v
+});
+
+var e14 = a_s.expression("b()*rs*0.9779+av*rv*0.9899", {
+  "rs": rs,
+  "rv": rv,
+  "av": a_v
+});
+
 
 var transmittance = vapor.map(calc_transmit);
   
