@@ -1,0 +1,17 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var geometry = ee.FeatureCollection("users/caiohamamura/piracicaba"),
+    imageVisParam = {"opacity":1,"bands":["B3N","B02","B01"],"min":36,"gamma":1};
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var k2_b13 = 1350.069147;
+var k2_b14 = 1271.221673;
+var k1_b13 = 866.468575;
+var k1_b14 = 641.326517;
+
+var noaa = ee.ImageCollection('MODIS/006/MOD08_M3')
+  .filterDate('2018-1-01', '2018-04-30')
+  .filterBounds(geometry)
+  .select(['Atmospheric_Water_Vapor_Mean_Mean', 'Water_Vapor_Near_Infrared_Clear_Mean_Mean', 'Water_Vapor_Near_Infrared_Cloud_Mean_Mean', 'Atmospheric_Water_Vapor_QA_Mean_Mean']);
+  
+  
+Map.addLayer(noaa.mosaic().divide(1000).clip(geometry)  );
+  
