@@ -12,6 +12,7 @@ var aster = ee.ImageCollection('ASTER/AST_L1T_003')
   .filterBounds(geometry)
   .select(['B01', 'B02', 'B3N','B10', 'B11', 'B12', 'B13', 'B14']);
   
+var modis = ee.ImageCollection('ASTER/AST_L1T_003');
 
 
 // Create a geometry representing an export region.
@@ -48,4 +49,4 @@ aster2 = aster2.filter(ee.Filter.eq('hour', 13));
 Map.addLayer(aster2.map(calculateTemperatureBrightness).mosaic().clip(geometry),
 imageVisParam);
 
-print(aster2);
+print(ee.Date(ee.Image(aster2.first()).date()));
