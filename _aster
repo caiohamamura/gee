@@ -1,6 +1,7 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var geometry = ee.FeatureCollection("users/caiohamamura/piracicaba"),
-    imageVisParam = {"opacity":1,"bands":["B3N","B02","B01"],"min":36,"gamma":1};
+    imageVisParam = {"opacity":1,"bands":["B3N","B02","B01"],"min":36,"gamma":1},
+    imageVisParam2 = {"opacity":1,"bands":["T14"],"min":25.642326080967848,"max":41.33793763986483,"palette":["27ff00","fbff00","ffa501","ff0000"]};
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 var k2_b13 = 1350.069147;
 var k2_b14 = 1271.221673;
@@ -64,8 +65,8 @@ aster2 = aster2.filter(ee.Filter.eq('hour', 13));
 var aster_radiance = aster2.map(calculateRadiance);
 var aster_temp_brightness = aster_radiance.map(calculateTemperatureBrightness);
 var temp_brightness = aster_temp_brightness.mosaic().clip(geometry);
-Map.addLayer(temp_brightness,
-imageVisParam);
+//Map.addLayer(temp_brightness,
+//imageVisParam);
 
 
 var veg_ndvi_min = 0.2;
@@ -79,18 +80,18 @@ var aster_veg_proportion = ndvi.expression(
 })
 
 var aster_emissivity = aster_veg_proportion.expression('0.004 * b() + 0.986');
-Map.addLayer(ndvi);
+//Map.addLayer(ndvi);
 
 temp_brightness = temp_brightness.addBands(aster_emissivity.rename(["e"]));
 
 var surface_temp = temp_brightness.expression(
-  'b("T13") / (1 + ((lambda * b("T14")) / c2) * log(b("e")))', {
+  'b("T14") / (1 + ((lambda * b("T14")) / c2) * log(b("e"))) - 273', {
     c2: ee.Number(0.014388),
-    lambda: ee.Number(0.0115)
+    lambda: ee.Number(0.0000115)
   }
   );
 
-Map.addLayer(surface_temp);
+Map.addLayer(surface_temp, imageVisParam2);
 
 //Map.addLayer(ndvi);  
 //Map.addLayer(transmittance.mosaic().clip(geometry));
