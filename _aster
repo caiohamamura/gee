@@ -1,6 +1,5 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var geometry = ee.FeatureCollection("users/caiohamamura/piracicaba"),
-    imageVisParam = {"opacity":1,"bands":["B3N","B02","B01"],"min":36,"gamma":1},
     imageVisParam2 = {"opacity":1,"bands":["T14"],"min":25.642326080967848,"max":41.33793763986483,"palette":["27ff00","fbff00","ffa501","ff0000"]};
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 var k2_b13 = 1350.069147;
