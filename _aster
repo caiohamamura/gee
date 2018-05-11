@@ -79,12 +79,12 @@ var aster_veg_proportion = ndvi.expression(
 })
 
 var aster_emissivity = aster_veg_proportion.expression('0.004 * b() + 0.986');
-Map.addLayer(aster_veg_proportion);
+Map.addLayer(ndvi);
 
 temp_brightness = temp_brightness.addBands(aster_emissivity.rename(["e"]));
 
 var surface_temp = temp_brightness.expression(
-  'b("T14") / (1 + (lambda * (b("T14")/c2)) * b("e"))', {
+  'b("T13") / (1 + ((lambda * b("T14")) / c2) * log(b("e")))', {
     c2: ee.Number(0.014388),
     lambda: ee.Number(0.0115)
   }
