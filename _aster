@@ -1,6 +1,7 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
-var geometry = ee.FeatureCollection("users/caiohamamura/piracicaba"),
-    imageVisParam2 = {"opacity":1,"bands":["T14"],"min":25.642326080967848,"max":41.33793763986483,"palette":["27ff00","fbff00","ffa501","ff0000"]};
+var geometry2 = ee.FeatureCollection("users/caiohamamura/piracicaba"),
+    geometry = ee.FeatureCollection("users/caiohamamura/mu_saopaulo_limite"),
+    imageVisParam = {"opacity":1,"bands":["T14"],"min":26.284133915070527,"max":47.168767133259905,"palette":["27ff00","fbff00","ffa501","ff0000"]};
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 var k2_b13 = 1350.069147;
 var k2_b14 = 1271.221673;
@@ -8,13 +9,11 @@ var k1_b13 = 866.468575;
 var k1_b14 = 641.326517;
 
 var aster = ee.ImageCollection('ASTER/AST_L1T_003')
-  .filterDate('2016-12-6', '2016-12-7')
+  .filterDate('2017-9-19', '2017-9-21')
   .filterBounds(geometry)
   .select(['B01', 'B02', 'B3N','B10', 'B11', 'B12', 'B13', 'B14']);
-  
-var modis = ee.ImageCollection('ASTER/AST_L1T_003');
 
-
+print(aster);
 // Create a geometry representing an export region.
 
 
@@ -79,16 +78,16 @@ var aster_emissivity = aster_veg_proportion.expression('0.004 * b() + 0.986');
 temp_brightness = temp_brightness.addBands(aster_emissivity.rename(["e"]));
 
 var surface_temp = temp_brightness.expression(
-  'b("T14") / (1 + ((lambda * b("T14")) / c2) * log(b("e"))) - 273', {
+  'b("T14") / (1 + ((lambda * b("T14")) / c2) * log(0.98)) - 273', {
     c2: ee.Number(0.014388),
     lambda: ee.Number(0.0000115)
   }
   );
 
-Map.addLayer(surface_temp, imageVisParam2);
+Map.addLayer(surface_temp, imageVisParam);
 
 Export.image.toDrive({
   image: surface_temp,
-  description: 'ASTER_TEMP_CELSIUS',
+  description: 'ASTER_TEMP_CELSIUS_SAMPA2',
   scale: 90,
 });
