@@ -47,12 +47,12 @@ var calculateRadiance = function(image) {
 
 var calculateTemperatureBrightness = function(image) {
    var t13 = image.expression(
-    'k2 / (log((k1/b("B13")) + 1))', {
+    'k2 / (log((k1/b("I13")) + 1))', {
       'k2': k2_b13,
       'k1': k1_b13
 }).rename('T13');
    var t14 = image.expression(
-    'k2 / (log((k1/b("B14")) + 1))', {
+    'k2 / (log((k1/b("I14")) + 1))', {
       'k2': k2_b14,
       'k1': k1_b14
 }).rename(['T14']);
@@ -63,57 +63,34 @@ var aster2 = aster.map(checkhour);
 aster2 = aster2.filter(ee.Filter.eq('hour', 13));
 var aster_radiance = aster2.map(calculateRadiance);
 var aster_temp_brightness = aster_radiance.map(calculateTemperatureBrightness);
-Map.addLayer(aster_temp_brightness.mosaic().clip(geometry),
+var temp_brightness = aster_temp_brightness.mosaic().clip(geometry);
+Map.addLayer(temp_brightness,
 imageVisParam);
 
 
-var calc_transmit = function(image) {
-  var transm13 = image.expression("1.035378-0.097514*b()").rename(["transm13"]);
-  var transm14 = image.expression("1.026468-0.135133*b()").rename(["transm14"]);
-  return image.addBands(transm13).addBands(transm14);
-}
+var veg_ndvi_min = 0.2;
+var veg_ndvi_max = 0.5;
+var ndvi = aster_radiance.mosaic().clip(geometry).normalizedDifference(['B3N','B02']);
 
+var aster_veg_proportion = ndvi.expression(
+  '((b() - ndvi_min) / (ndvi_max - ndvi_min))**2',{
+  ndvi_min: veg_ndvi_min,
+  ndvi_max: veg_ndvi_max
+})
 
-var vapor = ee.ImageCollection('MODIS/006/MOD08_M3')
-  .filterDate('2016-12-1', '2016-12-2')
-  .filterBounds(geometry)
-  .select(['Atmospheric_Water_Vapor_Mean_Mean']);
- 
-var aster3 = aster_temp_brightness.mosaic().clip(geometry);
-var ndvi = aster3.expression("(b('B3N')-b('B02'))/(b('B3N')+b('B02'))");
-var a_v = ndvi.expression('(b()-0.75)/0.65');
-var a_s = ndvi.expression('(b()-0.1)/0.65');
-var rv = a_v.expression("0.92762+0.07033*b()");
-var rs = a_s.expression("0.99782+0.08362*b()");
-var e13 = a_s.expression("b()*rs*0.967613+av*rv*0.9867", {
-  "rs": rs,
-  "rv": rv,
-  "av": a_v
-});
+var aster_emissivity = aster_veg_proportion.expression('0.004 * b() + 0.986');
+Map.addLayer(aster_veg_proportion);
 
-var e14 = a_s.expression("b()*rs*0.9779+av*rv*0.9899", {
-  "rs": rs,
-  "rv": rv,
-  "av": a_v
-});
+temp_brightness = temp_brightness.addBands(aster_emissivity.rename(["e"]));
 
-var transmittance = vapor.map(calc_transmit);
-var d13 = transmittance.mosaic().expression("(1-b('transm13'))*(1+((1-e13)*b('transm13')))",{
-"e13": e13});
-var d14 = transmittance.mosaic().expression("(1-b('transm14'))*(1+((1-e14)*b('transm14')))",{
-"e14": e14});
-var c13 = transmittance.mosaic().expression("b('transm13')*e13", {"e13": e13});
-var c14 = transmittance.mosaic().expression("b('transm14')*e14", {"e14": e14});
-var e0 = c13.expression('b()*d14 - d13*c14', {"d14": d14, "d13": d13, "c14": c14}); 
-var e2= d13.expression("b()*(1-C14-D14)/E0",{C14: c14, D14: d14, E0: e0});
-var e1= d14.expression("b()*(1-C13- D13)/E0", {C13: c13, D13: d13, E0: e0});
-var l13=aster3.expression("-60.9940+0.420721*b('T13')");
-var l14=aster3.expression("-63.3096+0.441977*b('T14')");
-var b=e1.expression("b()*L13-E2*L14",{L13:l13, E2:e2, L14:l14});
-var a=d13.expression("b()/E0", {E0:e0});
-var ts=aster3.expression("b('T13')+A*(b('T13')-b('T14'))+B", {B:b, A:a})
-Map.addLayer(ts);
+var surface_temp = temp_brightness.expression(
+  'b("T14") / (1 + (lambda * (b("T14")/c2)) * b("e"))', {
+    c2: ee.Number(0.014388),
+    lambda: ee.Number(0.0115)
+  }
+  );
 
-  
+Map.addLayer(surface_temp);
+
 //Map.addLayer(ndvi);  
 //Map.addLayer(transmittance.mosaic().clip(geometry));
