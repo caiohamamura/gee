@@ -29,6 +29,22 @@ var checkhour = function(image) {
   return image.set('hour', image.date().get('hour'));
 };
 
+var calculateRadiance = function(image) {
+  var i13 = image.expression(
+    '(b("B13") - 1) * gain', {
+      gain: image.get("GAIN_COEFFICIENT_B13")
+    }
+    ).rename(['I13']);
+    var i14 = image.expression(
+    '(b("B14") - 1) * gain', {
+      gain: image.get("GAIN_COEFFICIENT_B14")
+    }
+    ).rename(['I14']);
+    
+    return image.addBands(i13).addBands(i14);
+}
+
+
 var calculateTemperatureBrightness = function(image) {
    var t13 = image.expression(
     'k2 / (log((k1/b("B13")) + 1))', {
@@ -45,8 +61,9 @@ var calculateTemperatureBrightness = function(image) {
 
 var aster2 = aster.map(checkhour);
 aster2 = aster2.filter(ee.Filter.eq('hour', 13));
-
-Map.addLayer(aster2.map(calculateTemperatureBrightness).mosaic().clip(geometry),
+aster_irradiance = aster2.map(calculateRadiance);
+aster_temp_brightness.map(calculateTemperatureBrightness);
+Map.addLayer(aster_temp_brightness.mosaic().clip(geometry),
 imageVisParam);
 
 
@@ -62,7 +79,7 @@ var vapor = ee.ImageCollection('MODIS/006/MOD08_M3')
   .filterBounds(geometry)
   .select(['Atmospheric_Water_Vapor_Mean_Mean']);
  
-var aster3 = aster2.map(calculateTemperatureBrightness).mosaic().clip(geometry);
+var aster3 = aster_temp_brightness.mosaic().clip(geometry);
 var ndvi = aster3.expression("(b('B3N')-b('B02'))/(b('B3N')+b('B02'))");
 var a_v = ndvi.expression('(b()-0.75)/0.65');
 var a_s = ndvi.expression('(b()-0.1)/0.65');
