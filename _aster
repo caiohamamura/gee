@@ -32,12 +32,12 @@ var checkhour = function(image) {
 var calculateRadiance = function(image) {
   var i13 = image.expression(
     '(b("B13") - 1) * gain', {
-      gain: image.get("GAIN_COEFFICIENT_B13")
+      "gain": ee.Number(image.get("GAIN_COEFFICIENT_B13"))
     }
     ).rename(['I13']);
     var i14 = image.expression(
     '(b("B14") - 1) * gain', {
-      gain: image.get("GAIN_COEFFICIENT_B14")
+      "gain": ee.Number(image.get("GAIN_COEFFICIENT_B14"))
     }
     ).rename(['I14']);
     
@@ -61,8 +61,8 @@ var calculateTemperatureBrightness = function(image) {
 
 var aster2 = aster.map(checkhour);
 aster2 = aster2.filter(ee.Filter.eq('hour', 13));
-aster_irradiance = aster2.map(calculateRadiance);
-aster_temp_brightness.map(calculateTemperatureBrightness);
+var aster_radiance = aster2.map(calculateRadiance);
+var aster_temp_brightness = aster_radiance.map(calculateTemperatureBrightness);
 Map.addLayer(aster_temp_brightness.mosaic().clip(geometry),
 imageVisParam);
 
