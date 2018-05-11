@@ -20,11 +20,6 @@ var modis = ee.ImageCollection('ASTER/AST_L1T_003');
 
 
 // Export the image, specifying scale and region.
-Export.image.toDrive({
-  image: aster.mosaic().clip(geometry),
-  description: 'ASTER2',
-  scale: 90,
-});
 
 var checkhour = function(image) {
   return image.set('hour', image.date().get('hour'));
@@ -93,5 +88,8 @@ var surface_temp = temp_brightness.expression(
 
 Map.addLayer(surface_temp, imageVisParam2);
 
-//Map.addLayer(ndvi);  
-//Map.addLayer(transmittance.mosaic().clip(geometry));
+Export.image.toDrive({
+  image: surface_temp,
+  description: 'ASTER_TEMP_CELSIUS',
+  scale: 90,
+});
