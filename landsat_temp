@@ -1,5 +1,6 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
-var sp_limite = ee.FeatureCollection("users/caiohamamura/mu_saopaulo_limite");
+var sp_limite = ee.FeatureCollection("users/caiohamamura/mu_saopaulo_limite"),
+    imageVisParam = {"opacity":1,"bands":["B10"],"min":290.96062914051237,"max":305.1966890908056,"palette":["1b00ff","00cfff","e3ff00","ff0000"]};
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 var k2_b13 = 1350.069147;
 var k2_b14 = 1271.221673;
@@ -7,7 +8,7 @@ var k1_b13 = 866.468575;
 var k1_b14 = 641.326517;
 
 var landsat = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
-  .filterDate('2018-6-21', '2018-9-20')
+  .filterDate('2018-8-1', '2018-8-31')
   .filterBounds(sp_limite)
   .select(['B10','pixel_qa']);
 
@@ -107,7 +108,7 @@ var surface_temp = landsat.expression(
   }
   );
   
-Map.addLayer(surface_temp);
+Map.addLayer(surface_temp, imageVisParam);
 
 Export.image.toDrive({
   image: surface_temp,
