@@ -1,0 +1,91 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var sp_limite = ee.FeatureCollection("users/caiohamamura/mu_saopaulo_limite");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var k2_b13 = 1350.069147;
+var k2_b14 = 1271.221673;
+var k1_b13 = 866.468575;
+var k1_b14 = 641.326517;
+
+var landsat = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
+  .filterDate('2018-7-19', '2018-8-30')
+  .filterBounds(sp_limite)
+  .select(['B10']);
+
+print(landsat);
+// Create a geometry representing an export region.
+
+
+// Export the image, specifying scale and region.
+
+// var checkhour = function(image) {
+//   return image.set('hour', image.date().get('hour'));
+// };
+
+// var calculateRadiance = function(image) {
+//   var i13 = image.expression(
+//     '(b("B13") - 1) * gain', {
+//       "gain": ee.Number(image.get("GAIN_COEFFICIENT_B13"))
+//     }
+//     ).rename(['I13']);
+//     var i14 = image.expression(
+//     '(b("B14") - 1) * gain', {
+//       "gain": ee.Number(image.get("GAIN_COEFFICIENT_B14"))
+//     }
+//     ).rename(['I14']);
+    
+//     return image.addBands(i13).addBands(i14);
+// }
+
+
+// var calculateTemperatureBrightness = function(image) {
+//   var t13 = image.expression(
+//     'k2 / (log((k1/b("I13")) + 1))', {
+//       'k2': k2_b13,
+//       'k1': k1_b13
+// }).rename('T13');
+//   var t14 = image.expression(
+//     'k2 / (log((k1/b("I14")) + 1))', {
+//       'k2': k2_b14,
+//       'k1': k1_b14
+// }).rename(['T14']);
+//   return image.addBands(t13).addBands(t14);
+// }
+
+// var aster2 = aster.map(checkhour);
+// aster2 = aster2.filter(ee.Filter.eq('hour', 13));
+// var aster_radiance = aster2.map(calculateRadiance);
+// var aster_temp_brightness = aster_radiance.map(calculateTemperatureBrightness);
+// var temp_brightness = aster_temp_brightness.mosaic().clip(geometry);
+// //Map.addLayer(temp_brightness,
+// //imageVisParam);
+
+
+// var veg_ndvi_min = 0.2;
+// var veg_ndvi_max = 0.5;
+// var ndvi = aster_radiance.mosaic().clip(geometry).normalizedDifference(['B3N','B02']);
+
+// var aster_veg_proportion = ndvi.expression(
+//   '((b() - ndvi_min) / (ndvi_max - ndvi_min))**2',{
+//   ndvi_min: veg_ndvi_min,
+//   ndvi_max: veg_ndvi_max
+// })
+
+// var aster_emissivity = aster_veg_proportion.expression('0.004 * b() + 0.986');
+Map.addLayer(landsat.mosaic().clip(sp_limite));
+
+// temp_brightness = temp_brightness.addBands(aster_emissivity.rename(["e"]));
+
+// var surface_temp = temp_brightness.expression(
+//   'b("T14") / (1 + ((lambda * b("T14")) / c2) * log(0.98)) - 273', {
+//     c2: ee.Number(0.014388),
+//     lambda: ee.Number(0.0000115)
+//   }
+//   );
+
+// Map.addLayer(surface_temp, imageVisParam);
+
+// Export.image.toDrive({
+//   image: surface_temp,
+//   description: 'ASTER_TEMP_CELSIUS_SAMPA2',
+//   scale: 90,
+// });
