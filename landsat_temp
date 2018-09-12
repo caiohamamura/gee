@@ -7,9 +7,22 @@ var k1_b13 = 866.468575;
 var k1_b14 = 641.326517;
 
 var landsat = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
-  .filterDate('2018-7-19', '2018-8-30')
+  .filterDate('2018-6-21', '2018-9-20')
   .filterBounds(sp_limite)
-  .select(['B10']);
+  .select(['B10','pixel_qa']);
+
+
+//Remove nuvem e sombra
+landsat = landsat.map(function(img) {
+                  var cloudShadowBitMask = (1 << 3);
+                  var cloudsBitMask = (1 << 5);
+                  var qa = img.select('pixel_qa');
+                  var mask = qa.bitwiseAnd(cloudShadowBitMask).eq(0)
+                                   .and(qa.bitwiseAnd(cloudsBitMask).eq(0));
+                   return img.updateMask(mask)
+                   })
+
+landsat = landsat.mosaic().clip(sp_limite)
 
 print(landsat);
 // Create a geometry representing an export region.
@@ -71,16 +84,36 @@ print(landsat);
 // })
 
 // var aster_emissivity = aster_veg_proportion.expression('0.004 * b() + 0.986');
-Map.addLayer(landsat.mosaic().clip(sp_limite));
+landsat = landsat.select('B10').expression('b()*0.1');
+
+
+var imageVisParams2 = {
+  bands: ["B10"],
+  max: 298.90137010864196,
+  min: 290.3329595241505,
+  opacity: 1,
+  palette: ["ff0000","00ff00"]
+}
+
+
+
 
 // temp_brightness = temp_brightness.addBands(aster_emissivity.rename(["e"]));
 
-// var surface_temp = temp_brightness.expression(
-//   'b("T14") / (1 + ((lambda * b("T14")) / c2) * log(0.98)) - 273', {
-//     c2: ee.Number(0.014388),
-//     lambda: ee.Number(0.0000115)
-//   }
-//   );
+var surface_temp = landsat.expression(
+  'b("B10") / (1 + ((lambda * b("B10")) / c2) * log(0.98))', {
+    c2: ee.Number(0.014388),
+    lambda: ee.Number(0.0000115)
+  }
+  );
+  
+Map.addLayer(surface_temp);
+
+Export.image.toDrive({
+  image: surface_temp,
+  description: 'landsat_sp_temp',
+  scale: 30
+});
 
 // Map.addLayer(surface_temp, imageVisParam);
 
