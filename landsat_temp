@@ -1,6 +1,6 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var sp_limite = ee.FeatureCollection("users/caiohamamura/mu_saopaulo_limite"),
-    imageVisParam = {"opacity":1,"bands":["B10"],"min":290.96062914051237,"max":305.1966890908056,"palette":["1b00ff","00cfff","e3ff00","ff0000"]};
+    imageVisParam = {"opacity":1,"bands":["B10"],"min":290.96062914051237,"max":305.1966890908056,"palette":["00fff3","4aff00","ff8100","ff0000"]};
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 var k2_b13 = 1350.069147;
 var k2_b14 = 1271.221673;
