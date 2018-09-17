@@ -8,10 +8,11 @@ var k1_b13 = 866.468575;
 var k1_b14 = 641.326517;
 
 var landsat = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
-  .filterDate('2018-8-1', '2018-8-31')
+  .filterDate('2018-8-30', '2018-8-31')
   .filterBounds(sp_limite)
   .select(['B10','pixel_qa']);
-
+  
+print(landsat);
 
 //Remove nuvem e sombra
 landsat = landsat.map(function(img) {
@@ -110,12 +111,12 @@ var surface_temp = landsat.expression(
   
 Map.addLayer(surface_temp, imageVisParam);
 
-Export.image.toDrive({
-  image: surface_temp,
-  description: 'landsat_sp_temp',
-  scale: 30,
-  maxPixels: 31776784184
-});
+// Export.image.toDrive({
+//   image: surface_temp,
+//   description: 'landsat_sp_temp',
+//   scale: 30,
+//   maxPixels: 31776784184
+// });
 
 // Map.addLayer(surface_temp, imageVisParam);
 
