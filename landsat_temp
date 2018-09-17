@@ -105,7 +105,7 @@ var imageVisParams2 = {
 var surface_temp = landsat.expression(
   'b("B10") / (1 + ((lambda * b("B10")) / c2) * log(0.98))', {
     c2: ee.Number(0.014388),
-    lambda: ee.Number(0.0000115)
+    lambda: ee.Number(0.000010895)
   }
   );
   
