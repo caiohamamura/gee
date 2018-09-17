@@ -111,12 +111,12 @@ var surface_temp = landsat.expression(
   
 Map.addLayer(surface_temp, imageVisParam);
 
-// Export.image.toDrive({
-//   image: surface_temp,
-//   description: 'landsat_sp_temp',
-//   scale: 30,
-//   maxPixels: 31776784184
-// });
+Export.image.toDrive({
+  image: surface_temp,
+  description: 'landsat_sp_temp',
+  scale: 30,
+  maxPixels: 31776784184
+});
 
 // Map.addLayer(surface_temp, imageVisParam);
 
