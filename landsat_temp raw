@@ -87,7 +87,6 @@ print(landsat);
 // })
 
 // var aster_emissivity = aster_veg_proportion.expression('0.004 * b() + 0.986');
-landsat = landsat.expression('b()*0.1');
 
 
 var imageVisParams2 = {
@@ -118,7 +117,13 @@ var brightness_temp = radiance.expression(
     k2: k2_constant_band_10
   }
   );
-  
+
+var surface_temp = brightness_temp.expression(
+  'b() / (1 + ((lambda * b()) / c2) * log(0.98))', {
+    c2: ee.Number(0.014388),
+    lambda: ee.Number(0.000010895)
+  }
+  );
 
   
 Map.addLayer(surface_temp, imageVisParams2);
