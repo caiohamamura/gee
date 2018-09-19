@@ -11,21 +11,21 @@ var k1_b14 = 641.326517;
 var landsat = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
   .filterDate('2018-8-30', '2018-8-31')
   .filterBounds(sp_limite)
-  .select(['B10','pixel_qa']);
-  
-print(landsat);
+  .select(['B10','pixel_qa']).first();
+
 
 //Remove nuvem e sombra
-landsat = landsat.map(function(img) {
+var removeClouds = function(img) {
                   var cloudShadowBitMask = (1 << 3);
                   var cloudsBitMask = (1 << 5);
                   var qa = img.select('pixel_qa');
                   var mask = qa.bitwiseAnd(cloudShadowBitMask).eq(0)
                                    .and(qa.bitwiseAnd(cloudsBitMask).eq(0));
                    return image.updateMask(mask)
-                   })
+                   };
 
-landsat = landsat.mosaic()
+landsat = removeClouds(landsat);
+landsat = landsat.clip(sp_limite);
 
 print(landsat);
 // Create a geometry representing an export region.
@@ -103,14 +103,23 @@ var radiance_add_band_10 = 0.10000;
 var radiance_mult_band_10 = 3.3420E-04;
 
 
+var radiance = landsat.expression(
+  'b()*ml + al', 
+  {
+    ml: radiance_mult_band_10,
+    al: radiance_add_band_10
+}); 
+
 // temp_brightness = temp_brightness.addBands(aster_emissivity.rename(["e"]));
 
-var surface_temp = landsat.expression(
-  'b() / (1 + ((lambda * b()) / c2) * log(0.98))', {
-    c2: ee.Number(0.014388),
-    lambda: ee.Number(0.000010895)
+var brightness_temp = radiance.expression(
+  'k2 / (log(k1/(b()+1)))', {
+    k1: k1_constant_band_10,
+    k2: k2_constant_band_10
   }
   );
+  
+
   
 Map.addLayer(surface_temp, imageVisParams2);
 
