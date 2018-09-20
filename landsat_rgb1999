@@ -1,0 +1,48 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var sp_limite = ee.FeatureCollection("users/caiohamamura/mu_saopaulo_limite"),
+    imageVisParam = {"opacity":1,"bands":["red","green","blue"],"min":0.02319377288222313,"max":0.16327205300331116,"gamma":1};
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var landsat = ee.ImageCollection('LANDSAT/LE07/C01/T1_TOA')
+  .filterDate('1999-9-3', '1999-9-4')
+  .filterBounds(sp_limite)
+  .select(['B1', 'B2', 'B3', 'B8']);
+  
+
+//Remove nuvem e sombra
+// landsat = landsat.map(function(img) {
+//                   var cloudShadowBitMask = (1 << 3);
+//                   var cloudsBitMask = (1 << 5);
+//                   var qa = img.select('pixel_qa');
+//                   var mask = qa.bitwiseAnd(cloudShadowBitMask).eq(0)
+//                                   .and(qa.bitwiseAnd(cloudsBitMask).eq(0));
+//                   return img.updateMask(mask)
+//                   })
+
+landsat = landsat.mosaic().clip(sp_limite)
+
+print(landsat);
+
+var hsv = landsat.select(['B3', 'B2', 'B1']).rgbToHsv();
+
+var sharpened = ee.Image.cat([
+  hsv.select('hue'), hsv.select('saturation'), landsat.select('B8')
+]).hsvToRgb();
+
+Map.addLayer(sharpened);
+
+
+
+Export.image.toDrive({
+  image: sharpened,
+  description: 'landsat_rgb_1999',
+  scale: 15,
+  maxPixels: 31776784184
+});
+
+// Map.addLayer(surface_temp, imageVisParam);
+
+// Export.image.toDrive({
+//   image: surface_temp,
+//   description: 'ASTER_TEMP_CELSIUS_SAMPA2',
+//   scale: 90,
+// });
