@@ -131,8 +131,8 @@ Map.addLayer(surface_temp, imageVisParams2);
 
 Export.image.toDrive({
   image: surface_temp,
-  description: 'landsat_sp_temp',
-  scale: 30,
+  description: 'landsat_1999_clip',
+  scale: 100,
   maxPixels: 56908199845
 });
 
