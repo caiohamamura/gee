@@ -275,9 +275,9 @@ Map.addLayer(difference);
 
 
 Export.image.toDrive({
-  image: surface_temp,
-  description: 'landsat_sp_temp',
-  scale: 30,
+  image: difference,
+  description: 'landsat_temp_diff',
+  scale: 100,
   maxPixels: 31776784184
 });
 
