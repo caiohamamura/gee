@@ -1,0 +1,145 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var sp_limite = ee.FeatureCollection("users/caiohamamura/mu_saopaulo_limite"),
+    imageVisParam = {"opacity":1,"bands":["B10"],"min":290.96062914051237,"max":305.1966890908056,"palette":["00fff3","4aff00","ff8100","ff0000"]},
+    image = ee.Image("users/caiohamamura/landsat_B10");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var k2_b13 = 1350.069147;
+var k2_b14 = 1271.221673;
+var k1_b13 = 866.468575;
+var k1_b14 = 641.326517;
+
+var landsat = ee.ImageCollection('LANDSAT/LE07/C01/T1')
+  .filterDate('1999-9-3', '1999-9-4')
+  .filterBounds(sp_limite)
+  .select(['B6_VCID_1','BQA']);
+
+
+//Remove nuvem e sombra
+var removeClouds = function(img) {
+                  var cloudsBitMask = (1 << 4);
+                  var qa = img.select('BQA');
+                  var mask = qa.and(qa.bitwiseAnd(cloudsBitMask).eq(0));
+                   return img.updateMask(mask)
+                   };
+
+landsat = landsat.map(removeClouds);
+print(landsat);
+landsat = landsat.mosaic();
+// landsat = landsat.clip(sp_limite);
+
+
+// Create a geometry representing an export region.
+
+
+// Export the image, specifying scale and region.
+
+// var checkhour = function(image) {
+//   return image.set('hour', image.date().get('hour'));
+// };
+
+// var calculateRadiance = function(image) {
+//   var i13 = image.expression(
+//     '(b("B13") - 1) * gain', {
+//       "gain": ee.Number(image.get("GAIN_COEFFICIENT_B13"))
+//     }
+//     ).rename(['I13']);
+//     var i14 = image.expression(
+//     '(b("B14") - 1) * gain', {
+//       "gain": ee.Number(image.get("GAIN_COEFFICIENT_B14"))
+//     }
+//     ).rename(['I14']);
+    
+//     return image.addBands(i13).addBands(i14);
+// }
+
+
+// var calculateTemperatureBrightness = function(image) {
+//   var t13 = image.expression(
+//     'k2 / (log((k1/b("I13")) + 1))', {
+//       'k2': k2_b13,
+//       'k1': k1_b13
+// }).rename('T13');
+//   var t14 = image.expression(
+//     'k2 / (log((k1/b("I14")) + 1))', {
+//       'k2': k2_b14,
+//       'k1': k1_b14
+// }).rename(['T14']);
+//   return image.addBands(t13).addBands(t14);
+// }
+
+// var aster2 = aster.map(checkhour);
+// aster2 = aster2.filter(ee.Filter.eq('hour', 13));
+// var aster_radiance = aster2.map(calculateRadiance);
+// var aster_temp_brightness = aster_radiance.map(calculateTemperatureBrightness);
+// var temp_brightness = aster_temp_brightness.mosaic().clip(geometry);
+// //Map.addLayer(temp_brightness,
+// //imageVisParam);
+
+
+// var veg_ndvi_min = 0.2;
+// var veg_ndvi_max = 0.5;
+// var ndvi = aster_radiance.mosaic().clip(geometry).normalizedDifference(['B3N','B02']);
+
+// var aster_veg_proportion = ndvi.expression(
+//   '((b() - ndvi_min) / (ndvi_max - ndvi_min))**2',{
+//   ndvi_min: veg_ndvi_min,
+//   ndvi_max: veg_ndvi_max
+// })
+
+// var aster_emissivity = aster_veg_proportion.expression('0.004 * b() + 0.986');
+
+
+var imageVisParams2 = {
+  max: 298.90137010864196,
+  min: 290.3329595241505,
+  opacity: 1,
+  palette: ["ff0000","00ff00"]
+}
+
+var k1_constant_band_10 = 666.09;
+var k2_constant_band_10 = 1282.71;
+var radiance_add_band_10 = -0.06709;
+var radiance_mult_band_10 = 0.067087;
+
+
+landsat = landsat.select('B6_VCID_1');
+var radiance = landsat.expression(
+  'b()*ml + al', 
+  {
+    ml: radiance_mult_band_10,
+    al: radiance_add_band_10
+}); 
+
+// temp_brightness = temp_brightness.addBands(aster_emissivity.rename(["e"]));
+
+var brightness_temp = radiance.expression(
+  'k2 / (log((k1/b())+1))', {
+    k1: k1_constant_band_10,
+    k2: k2_constant_band_10
+  }
+  );
+
+var surface_temp = brightness_temp.expression(
+  'b() / (1 + ((lambda * b()) / c2) * log(0.98))', {
+    c2: ee.Number(0.014388),
+    lambda: ee.Number(0.000010895)
+  }
+  );
+
+  
+Map.addLayer(surface_temp, imageVisParams2);
+
+Export.image.toDrive({
+  image: surface_temp,
+  description: 'landsat_sp_temp',
+  scale: 30,
+  maxPixels: 56908199845
+});
+
+// Map.addLayer(surface_temp, imageVisParam);
+
+// Export.image.toDrive({
+//   image: surface_temp,
+//   description: 'ASTER_TEMP_CELSIUS_SAMPA2',
+//   scale: 90,
+// });
