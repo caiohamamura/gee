@@ -25,7 +25,7 @@ var removeClouds = function(img) {
 landsat = landsat.map(removeClouds);
 print(landsat);
 landsat = landsat.mosaic();
-// landsat = landsat.clip(sp_limite);
+landsat = landsat.clip(sp_limite);
 
 
 // Create a geometry representing an export region.
