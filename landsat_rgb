@@ -1,0 +1,53 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var sp_limite = ee.FeatureCollection("users/caiohamamura/mu_saopaulo_limite"),
+    imageVisParam = {"opacity":1,"bands":["B10"],"min":290.96062914051237,"max":305.1966890908056,"palette":["00fff3","4aff00","ff8100","ff0000"]};
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var k2_b13 = 1350.069147;
+var k2_b14 = 1271.221673;
+var k1_b13 = 866.468575;
+var k1_b14 = 641.326517;
+
+var landsat = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')
+  .filterDate('2018-8-30', '2018-8-31')
+  .filterBounds(sp_limite)
+  .select(['B2', 'B3', 'B4', 'B8']);
+  
+
+//Remove nuvem e sombra
+// landsat = landsat.map(function(img) {
+//                   var cloudShadowBitMask = (1 << 3);
+//                   var cloudsBitMask = (1 << 5);
+//                   var qa = img.select('pixel_qa');
+//                   var mask = qa.bitwiseAnd(cloudShadowBitMask).eq(0)
+//                                   .and(qa.bitwiseAnd(cloudsBitMask).eq(0));
+//                   return img.updateMask(mask)
+//                   })
+
+landsat = landsat.select(['B2', 'B3', 'B4', 'B8']).mosaic().clip(sp_limite)
+
+print(landsat);
+
+var hsv = landsat.select(['B4', 'B3', 'B2']).rgbToHsv();
+
+var sharpened = ee.Image.cat([
+  hsv.select('hue'), hsv.select('saturation'), landsat.select('B8')
+]).hsvToRgb();
+
+Map.addLayer(sharpened);
+
+
+
+Export.image.toDrive({
+  image: landsat,
+  description: 'landsat_rgb_2018',
+  scale: 15,
+  maxPixels: 31776784184
+});
+
+// Map.addLayer(surface_temp, imageVisParam);
+
+// Export.image.toDrive({
+//   image: surface_temp,
+//   description: 'ASTER_TEMP_CELSIUS_SAMPA2',
+//   scale: 90,
+// });
